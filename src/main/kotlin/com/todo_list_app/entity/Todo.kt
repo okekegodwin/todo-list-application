@@ -13,5 +13,9 @@ data class Todo (
     var title: String,
     var description: String,
     var dueDate: LocalDate,
-    var priorityLevel: String
+    var priorityLevel: String,
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    val user: User
 )
