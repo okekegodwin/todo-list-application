@@ -1,9 +1,13 @@
 package com.todo_list_app.controller
 
+import com.todo_list_app.config.MyUserDetails
 import com.todo_list_app.dto.TodoDTO
 import com.todo_list_app.entity.Todo
+import com.todo_list_app.entity.User
 import com.todo_list_app.service.TodoService
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 
 
@@ -15,7 +19,12 @@ class TodoController(val todoService: TodoService) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun addTodo(@RequestBody todoDTO: TodoDTO) : TodoDTO {
-        return todoService.addTodo(todoDTO)
+        val authentication: Authentication = SecurityContextHolder.getContext().authentication
+        val userDetails = authentication.principal as MyUserDetails
+        val userId = userDetails.user.id ?: throw RuntimeException("User with ID not found")
+        println("Adding Todo: $todoDTO")
+        println("User ID: $userId")
+        return todoService.addTodo(todoDTO, userId)
     }
 
     // Read Request

@@ -2,9 +2,12 @@ package com.todo_list_app.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -14,7 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 
 @Configuration
-class SecurityConfig(val userDetailsService: UserDetailsService, val jwtRequestFilter: JwtRequestFilter) {
+@EnableWebSecurity
+class SecurityConfig(@Lazy val userDetailsService: UserDetailsService, val jwtRequestFilter: JwtRequestFilter) {
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
@@ -22,11 +26,8 @@ class SecurityConfig(val userDetailsService: UserDetailsService, val jwtRequestF
     }
 
     @Bean
-    fun authenticationManager(http: HttpSecurity): AuthenticationManager {
-        return http.getSharedObject(AuthenticationManagerBuilder::class.java)
-            .userDetailsService(userDetailsService)
-            .passwordEncoder(passwordEncoder())
-            .build()
+    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager {
+        return authenticationConfiguration.authenticationManager
     }
 
     @Bean
@@ -35,11 +36,14 @@ class SecurityConfig(val userDetailsService: UserDetailsService, val jwtRequestF
             .csrf { csrf -> csrf.disable() }
             .authorizeHttpRequests { authz ->
                 authz
-                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
                     .anyRequest().authenticated()
             }
             .sessionManagement { session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            .headers { headers ->
+                headers.frameOptions { it.sameOrigin() }
             }
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter::class.java)
 

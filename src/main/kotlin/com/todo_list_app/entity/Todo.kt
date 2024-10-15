@@ -1,5 +1,6 @@
 package com.todo_list_app.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 import java.time.LocalDate
 
@@ -15,7 +16,16 @@ data class Todo (
     var dueDate: LocalDate,
     var priorityLevel: String,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    val user: User
-)
+    var user: User? = null
+) {
+    constructor() : this(
+        id = null,
+        title = "",
+        description = "",
+        dueDate = LocalDate.now(),
+        priorityLevel = "",
+        user = null
+    )
+}

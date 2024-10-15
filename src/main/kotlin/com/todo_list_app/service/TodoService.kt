@@ -4,26 +4,37 @@ import com.todo_list_app.dto.TodoDTO
 import com.todo_list_app.entity.Todo
 import com.todo_list_app.exception.TodoNotFoundException
 import com.todo_list_app.repository.TodoRepository
+import com.todo_list_app.repository.UserRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.lang.RuntimeException
 
 @Service
-class TodoService(val todoRepository: TodoRepository) {
+class TodoService(val todoRepository: TodoRepository, val userRepository: UserRepository) {
 
     companion object : KLogging()
 
-    fun addTodo(todoDTO: TodoDTO) : TodoDTO {
-        val todoEntity = todoDTO.let {
-            Todo(id = null, it.title, it.description, it.dueDate, it.priorityLevel)
-        }
+    @Transactional
+    fun addTodo(todoDTO: TodoDTO, userId: Int) : TodoDTO {
+
+        val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
+
+        val todoEntity = Todo(
+            id = null,
+            title = todoDTO.title,
+            description = todoDTO.description,
+            dueDate = todoDTO.dueDate,
+            priorityLevel = todoDTO.priorityLevel,
+            user = user
+        )
 
         todoRepository.save(todoEntity)
 
         logger.info("Saved task is : $todoEntity")
 
         return todoEntity.let {
-            it.id?.let { it1 -> TodoDTO(it1, it.title, it.description, it.dueDate, it.priorityLevel) }!!
+            TodoDTO(it.id!!, it.title, it.description, it.dueDate, it.priorityLevel)
         }
     }
 
