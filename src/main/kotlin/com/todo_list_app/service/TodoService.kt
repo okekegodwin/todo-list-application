@@ -30,8 +30,8 @@ class TodoService(val todoRepository: TodoRepository, val userRepository: UserRe
         )
 
         todoRepository.save(todoEntity)
-
-        logger.info("Saved task is : $todoEntity")
+        logger.info("User associated with Todo: ${user.id}, ${user.username}")
+        logger.info("Saved task with ID: ${todoEntity.id}, Title: ${todoEntity.title}")
 
         return todoEntity.let {
             TodoDTO(it.id!!, it.title, it.description, it.dueDate, it.priorityLevel)
@@ -76,6 +76,7 @@ class TodoService(val todoRepository: TodoRepository, val userRepository: UserRe
                 .let {
                     todoRepository.deleteById(todoId)
                 }
+            logger.info("Task with ID $todoId deleted successfully")
         } else {
             throw TodoNotFoundException("No todo found with the passed in ID $todoId")
         }
